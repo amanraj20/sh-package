@@ -13,16 +13,19 @@
 
 
 
-any_medication<- function(dataset, new,  summ_by, summ_of){
-  library(tidyverse)
-  library(haven)
-  dataset1<-dataset %>% select(USUBJID, summ_by)
+any_medication <- function(dataset, new,  summ_by, summ_of){
+  library(magrittr)
+  
+  dataset1 <- dataset %>% dplyr::select(USUBJID, summ_by)
   dataset1$summarise_by = ""
   for (i in seq(nrow(dataset1))){
     dataset1[i, "summarise_by"] = dataset1[i, summ_by]
   }
 
-  table_x<- dataset1 %>% select(USUBJID, summarise_by) %>% group_by(USUBJID) %>% distinct(summarise_by)
+  table_x <- dataset1 %>% 
+              dplyr::select(USUBJID, summarise_by) %>% 
+              dplyr::group_by(USUBJID) %>% 
+              dplyr::distinct(summarise_by)
 
   c1<- c(unique(table_x$summarise_by))
 
@@ -53,7 +56,9 @@ any_medication<- function(dataset, new,  summ_by, summ_of){
   #1st step: giving count of q2ms and dtg+rpv to each values:
   #what are the distinct values of adecod that we filtered?
 
-  new_x<- new %>% group_by(summary_of) %>% distinct(summary_of)
+  new_x<- new %>% 
+            dplyr::group_by(summary_of) %>% 
+            dplyr::distinct(summary_of)
   new_x1<- c(unique(new_x$summary_of))
 
 
@@ -81,9 +86,12 @@ any_medication<- function(dataset, new,  summ_by, summ_of){
   }
 
   for (i in seq(length(c1))){
-    vals<- new %>% filter(summarise_by==c1[i]) %>% group_by(USUBJID) %>% distinct(USUBJID)
-    vals2<- nrow(vals)
-    new_x2[1, c1[i]]= new_x2[1, c1[i]]+as.numeric(vals2)
+    vals <- new %>% 
+    dplyr::filter(summarise_by==c1[i]) %>%
+    dplyr::group_by(USUBJID) %>% 
+    dplyr::distinct(USUBJID)
+    vals2 <- nrow(vals)
+    new_x2[1, c1[i]] <- new_x2[1, c1[i]] + as.numeric(vals2)
 
   }
 
@@ -93,10 +101,10 @@ any_medication<- function(dataset, new,  summ_by, summ_of){
   #here, we have to calculate the percentage:
   for(i in seq(nrow(new_x2))){
     for(j in seq(length(c1))){
-      count_val = new_x2[i, as.character(c1[j])]
-      percent_val<- round((as.numeric(count_val)/as.numeric(c_count[j]))*100, digits = 0)
-      new_x2[i, as.character(colmn[j])] = paste(count_val, " ", "(", percent_val, "%", ")", sep = "")
-      new_x2[i, ncol(new_x2)] = as.numeric(new_x2[i, ncol(new_x2)])+ as.numeric(count_val)
+      count_val <- new_x2[i, as.character(c1[j])]
+      percent_val <- round((as.numeric(count_val)/as.numeric(c_count[j]))*100, digits = 0)
+      new_x2[i, as.character(colmn[j])] <- paste(count_val, " ", "(", percent_val, "%", ")", sep = "")
+      new_x2[i, ncol(new_x2)] <- as.numeric(new_x2[i, ncol(new_x2)]) + as.numeric(count_val)
 
     }
     total_percent<- round((as.numeric(new_x2[i, ncol(new_x2)])/sum(c_count))*100, digits = 0)
@@ -104,8 +112,9 @@ any_medication<- function(dataset, new,  summ_by, summ_of){
 
   }
 
-  new_x2<- new_x2 %>% select(-c1)
-  new_x2<- new_x2 %>% rename(Ingredients = 'give_name')
+  new_x2 <- new_x2 %>% 
+              dplyr::select(-c1) %>% 
+              dplyr::rename(Ingredients = 'give_name')
   return(new_x2)
 
 }
